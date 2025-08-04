@@ -7,3 +7,4 @@ argon2-cffi==23.1.0
 numpy>=1.26.4
 pandas==2.1.4; platform_system != "Linux" or python_version < "3.13"
 Cython==0.29.37
+Python-dotenv==1.0.1
