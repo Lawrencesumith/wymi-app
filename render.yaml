@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     region: oregon
-    buildCommand: pip install -r requirements.txt
+    buildCommand: apt-get update && apt-get install -y libpq-dev && pip install -r requirements.txt
     startCommand: python recommendation_api_fastapi.py
     envVars:
       - key: PYTHON_VERSION
