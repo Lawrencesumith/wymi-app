@@ -1,0 +1,1 @@
+This repository contains a product recommendation for a e-commerce site using Machine learning model algorithms like Content based algorithm, collobarative based algorithm, activity based algorithm and matrix factorization for predicting the rating

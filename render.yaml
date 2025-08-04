@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: wymi-app
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: python recommendation_api_fastapi.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DB_NAME
+        value: wymi_db_2b3w
+      - key: DB_USER
+        value: wymi_db_2b3w_user
+      - key: DB_PASSWORD
+        value: NSzjhMW59KmdMMPMzj49bNFBSPkUT4te
+      - key: DB_HOST
+        value: dpg-d26as4be5dus73derc50-a.oregon-postgres.render.com
+      - key: DB_PORT
+        value: 5432
+      - key: API_KEY
+        value: wymi-secret-key
+      - key: PORT
+        value: 8000
+    healthCheckPath: /health

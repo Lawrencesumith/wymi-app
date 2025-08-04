@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WYMI E-Commerce</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .hidden { display: none; }
+        .section { min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-warning:hover { background-color: #e0a800; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-danger:hover { background-color: #c82333; }
+        .nav {
+            background: linear-gradient(to right, #007bff, #00d4ff);
+            padding: 1rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav input, .nav button {
+            margin-left: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: none;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            transition: transform 0.3s;
+        }
+        .product-card:hover { transform: scale(1.05); }
+        .error { color: #dc3545; margin-bottom: 1rem; }
+        .input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .rating-section, .review-section { margin-top: 1.5rem; }
+        .review-item { border-top: 1px solid #eee; padding-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div id="signup-section" class="section hidden">
+        <div class="container card">
+            <h2 class="text-2xl font-bold mb-4 text-center">Sign Up</h2>
+            <div id="signup-error" class="error hidden"></div>
+            <div class="space-y-4">
+                <input id="signup-name" type="text" placeholder="Name" class="input">
+                <input id="signup-age" type="number" placeholder="Age" class="input">
+                <select id="signup-gender" class="input">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <input id="signup-email" type="email" placeholder="Email" class="input">
+                <input id="signup-mobile" type="text" placeholder="Mobile" class="input">
+                <input id="signup-password" type="password" placeholder="Password" class="input">
+                <button onclick="signup()" class="btn btn-primary w-full">Sign Up</button>
+                <p class="text-center">Already have an account? <a href="#" onclick="showSection('login-section')" class="text-blue-500">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-section" class="section hidden">
+        <div class="container card">
+            <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+            <div id="login-error" class="error hidden"></div>
+            <div class="space-y-4">
+                <input id="login-email" type="email" placeholder="Email" class="input">
+                <input id="login-password" type="password" placeholder="Password" class="input">
+                <button onclick="login()" class="btn btn-primary w-full">Login</button>
+                <p class="text-center">Don't have an account? <a href="#" onclick="showSection('signup-section')" class="text-blue-500">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-section" class="section">
+        <nav class="nav">
+            <h1 class="text-xl font-bold">WYMI E-Commerce</h1>
+            <div>
+                <input id="search-query" type="text" placeholder="Search products...">
+                <button onclick="searchProducts()" class="btn btn-primary">Search</button>
+                <button onclick="showUserActivity()" class="btn btn-primary">Activity</button>
+                <button onclick="showSection('login-section')" class="btn btn-primary">Login</button>
+                <button onclick="logout()" class="btn btn-danger hidden" id="logout-btn">Logout</button>
+            </div>
+        </nav>
+        <div class="container">
+            <h2 class="text-2xl font-bold mb-4">Products</h2>
+            <div id="product-list" class="product-grid"></div>
+            <h2 class="text-2xl font-bold mt-8 mb-4">Recommended Products</h2>
+            <div id="recommendations" class="product-grid"></div>
+        </div>
+    </div>
+
+    <div id="product-page" class="section hidden">
+        <div class="container card">
+            <button onclick="showSection('main-section')" class="text-blue-500 mb-4">← Back</button>
+            <div id="product-details" class="flex flex-col md:flex-row">
+                <div class="md:w-1/2">
+                    <h2 id="product-title" class="text-2xl font-bold mb-4"></h2>
+                    <p id="product-material" class="mb-2"></p>
+                    <p id="product-price" class="mb-4"></p>
+                    <div class="space-y-2">
+                        <button onclick="buyNow()" class="btn btn-success w-full">Buy Now</button>
+                        <button onclick="addToCart()" class="btn btn-primary w-full">Add to Cart</button>
+                        <button onclick="addToWishlist()" class="btn btn-warning w-full">Add to Wishlist</button>
+                    </div>
+                    <div class="rating-section">
+                        <h3 class="text-lg font-bold">Rate this product</h3>
+                        <select id="product-rating" class="input">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                        <button onclick="submitRating()" class="btn btn-primary">Submit Rating</button>
+                    </div>
+                    <div class="review-section">
+                        <h3 class="text-lg font-bold">Reviews</h3>
+                        <div id="product-reviews" class="space-y-2"></div>
+                    </div>
+                </div>
+                <div class="md:w-1/2 md:pl-6 mt-6 md:mt-0">
+                    <h3 class="text-lg font-bold mb-2">You may also like</h3>
+                    <div id="product-recommendations" class="product-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="activity-section" class="section hidden">
+        <div class="container card">
+            <button onclick="showSection('main-section')" class="text-blue-500 mb-4">← Back</button>
+            <h2 class="text-2xl font-bold mb-4">User Activity</h2>
+            <div id="user-activity" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const API_KEY = 'wymi-secret-key';
+        let currentUserId = null;
+        let currentProductId = null;
+
+        // Generate anonymous user_id if not logged in
+        function generateAnonUserId() {
+            return 'anon_' + Math.random().toString(36).substr(2, 4);
+        }
+
+        // Initialize user_id on page load
+        window.onload = function() {
+            if (!localStorage.getItem('user_id')) {
+                currentUserId = generateAnonUserId();
+                localStorage.setItem('user_id', currentUserId);
+                document.getElementById('logout-btn').classList.add('hidden');
+                fetchProducts();
+                fetchRecommendations();
+            } else {
+                currentUserId = localStorage.getItem('user_id');
+                if (!currentUserId.startsWith('anon_')) {
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                }
+                fetchProducts();
+                fetchRecommendations();
+            }
+        };
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            if (sectionId === 'main-section') {
+                fetchProducts();
+                fetchRecommendations();
+            }
+        }
+
+        async function signup() {
+            const name = document.getElementById('signup-name').value;
+            const age = parseInt(document.getElementById('signup-age').value);
+            const gender = document.getElementById('signup-gender').value;
+            const email = document.getElementById('signup-email').value;
+            const mobile = document.getElementById('signup-mobile').value;
+            const password = document.getElementById('signup-password').value;
+            try {
+                const response = await fetch(`${API_URL}/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+                    body: JSON.stringify({ name, age, gender, email, mobile, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    currentUserId = data.user_id;
+                    localStorage.setItem('user_id', currentUserId);
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                    showSection('main-section');
+                } else {
+                    document.getElementById('signup-error').textContent = data.detail;
+                    document.getElementById('signup-error').classList.remove('hidden');
+                }
+            } catch (error) {
+                document.getElementById('signup-error').textContent = 'Error signing up';
+                document.getElementById('signup-error').classList.remove('hidden');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    currentUserId = data.user_id;
+                    localStorage.setItem('user_id', currentUserId);
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                    showSection('main-section');
+                } else {
+                    document.getElementById('login-error').textContent = data.detail;
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            } catch (error) {
+                document.getElementById('login-error').textContent = 'Error logging in';
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            currentUserId = generateAnonUserId();
+            localStorage.setItem('user_id', currentUserId);
+            document.getElementById('logout-btn').classList.add('hidden');
+            showSection('main-section');
+        }
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${API_URL}/recommend/${currentUserId}`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const data = await response.json();
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = '';
+                data.recommendations.forEach(product => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <h3 class="text-lg font-bold">${product.category}</h3>
+                        <p>Material: ${product.material}</p>
+                        <p>Price: ₹${product.price.toFixed(2)}</p>
+                        <button onclick="viewProduct(${product.product_id})" class="btn btn-primary w-full">View Details</button>
+                    `;
+                    productList.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        }
+
+        async function searchProducts() {
+            const query = document.getElementById('search-query').value;
+            if (!query) return;
+            try {
+                const response = await fetch(`${API_URL}/search`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+                    body: JSON.stringify({ user_id: currentUserId, query })
+                });
+                const data = await response.json();
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = '';
+                data.recommendations.forEach(product => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <h3 class="text-lg font-bold">${product.category}</h3>
+                        <p>Material: ${product.material}</p>
+                        <p>Price: ₹${product.price.toFixed(2)}</p>
+                        <button onclick="viewProduct(${product.product_id})" class="btn btn-primary w-full">View Details</button>
+                    `;
+                    productList.appendChild(div);
+                });
+                if (data.suggestion) {
+                    alert(data.suggestion);
+                }
+                fetchRecommendations();
+            } catch (error) {
+                console.error('Error searching products:', error);
+            }
+        }
+
+        async function viewProduct(productId) {
+            currentProductId = productId;
+            await logActivity('view', productId);
+            try {
+                const response = await fetch(`${API_URL}/product/${productId}?user_id=${currentUserId}`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const product = await response.json();
+                document.getElementById('product-title').textContent = product.category;
+                document.getElementById('product-material').textContent = `Material: ${product.material}`;
+                document.getElementById('product-price').textContent = `Price: ₹${product.price.toFixed(2)}`;
+                showSection('product-page');
+                fetchProductRecommendations(productId);
+                fetchReviews(productId);
+            } catch (error) {
+                console.error('Error fetching product:', error);
+            }
+        }
+
+        async function logActivity(activityType, productId = null) {
+            try {
+                await fetch(`${API_URL}/log_activity`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+                    body: JSON.stringify({ user_id: currentUserId, product_id: productId, activity_type: activityType })
+                });
+                if (activityType !== 'view') {
+                    fetchRecommendations();
+                }
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+        }
+
+        async function buyNow() {
+            if (currentUserId.startsWith('anon_')) {
+                alert('Please login to proceed with purchase');
+                showSection('login-section');
+                return;
+            }
+            await logActivity('click', currentProductId);
+            alert('Proceeding to checkout...');
+        }
+
+        async function addToCart() {
+            if (currentUserId.startsWith('anon_')) {
+                alert('Please login to add to cart');
+                showSection('login-section');
+                return;
+            }
+            await logActivity('add_to_cart', currentProductId);
+            alert('Added to cart!');
+        }
+
+        async function addToWishlist() {
+            if (currentUserId.startsWith('anon_')) {
+                alert('Please login to add to wishlist');
+                showSection('login-section');
+                return;
+            }
+            await logActivity('wishlist', currentProductId);
+            alert('Added to wishlist!');
+        }
+
+        async function submitRating() {
+            if (currentUserId.startsWith('anon_')) {
+                alert('Please login to rate products');
+                showSection('login-section');
+                return;
+            }
+            const rating = document.getElementById('product-rating').value;
+            try {
+                await fetch(`${API_URL}/log_activity`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+                    body: JSON.stringify({ user_id: currentUserId, product_id: currentProductId, activity_type: `rating_${rating}` })
+                });
+                fetchReviews(currentProductId);
+                fetchRecommendations();
+                alert('Rating submitted!');
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+            }
+        }
+
+        async function fetchReviews(productId) {
+            if (currentUserId.startsWith('anon_')) return;
+            try {
+                const response = await fetch(`${API_URL}/user_activity/${currentUserId}`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const activities = await response.json();
+                const reviews = activities.filter(a => a.product_id === productId && a.activity_type.startsWith('rating_'));
+                const reviewDiv = document.getElementById('product-reviews');
+                reviewDiv.innerHTML = '';
+                reviews.forEach(review => {
+                    const rating = review.activity_type.split('_')[1];
+                    const div = document.createElement('div');
+                    div.className = 'review-item';
+                    div.innerHTML = `<p>Rating: ${rating}/5 <br> Date: ${new Date(review.created_at).toLocaleString()}</p>`;
+                    reviewDiv.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error fetching reviews:', error);
+            }
+        }
+
+        async function fetchRecommendations() {
+            try {
+                const response = await fetch(`${API_URL}/recommend/${currentUserId}`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const data = await response.json();
+                const recDiv = document.getElementById('recommendations');
+                recDiv.innerHTML = '';
+                data.recommendations.forEach(product => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <h3 class="text-lg font-bold">${product.category}</h3>
+                        <p>Material: ${product.material}</p>
+                        <p>Price: ₹${product.price.toFixed(2)}</p>
+                        <button onclick="viewProduct(${product.product_id})" class="btn btn-primary w-full">View Details</button>
+                    `;
+                    recDiv.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        }
+
+        async function fetchProductRecommendations(productId) {
+            try {
+                const response = await fetch(`${API_URL}/product/${productId}/recommend?user_id=${currentUserId}`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const data = await response.json();
+                const recDiv = document.getElementById('product-recommendations');
+                recDiv.innerHTML = '';
+                data.recommendations.forEach(product => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <h3 class="text-lg font-bold">${product.category}</h3>
+                        <p>Material: ${product.material}</p>
+                        <p>Price: ₹${product.price.toFixed(2)}</p>
+                        <button onclick="viewProduct(${product.product_id})" class="btn btn-primary w-full">View Details</button>
+                    `;
+                    recDiv.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error fetching product recommendations:', error);
+            }
+        }
+
+        async function showUserActivity() {
+            if (currentUserId.startsWith('anon_')) {
+                alert('Please login to view activity');
+                showSection('login-section');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/user_activity/${currentUserId}`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const activities = await response.json();
+                const activityDiv = document.getElementById('user-activity');
+                activityDiv.innerHTML = '';
+                activities.forEach(activity => {
+                    const div = document.createElement('div');
+                    div.className = 'review-item';
+                    div.innerHTML = `
+                        <p>Product: ${activity.product_name || 'N/A'} (ID: ${activity.product_id || 'N/A'})</p>
+                        <p>Action: ${activity.activity_type.replace('rating_', 'Rating ').replace('_', ' ')}</p>
+                        <p>Date: ${new Date(activity.created_at).toLocaleString()}</p>
+                    `;
+                    activityDiv.appendChild(div);
+                });
+                showSection('activity-section');
+            } catch (error) {
+                console.error('Error fetching user activity:', error);
+            }
+        }
+    </script>
+</body>
+</html>
